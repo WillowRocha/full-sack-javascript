@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import TodoSearch from '../component/TodoSearch';
 import TodoList from '../component/TodoList'
-import { fetchAll, insert, update } from '../services/todo.service';
-
-
+import TodoService from '../services/todo.service';
 class Todo extends Component {
   constructor(props) {
     super(props);
@@ -17,7 +15,7 @@ class Todo extends Component {
   }
 
   fetchTodoList() {
-    return fetchAll().then(todolist => this.setState({ todolist }));
+    return this.props.service.fetchAll().then(todolist => this.setState({ todolist }));
   }
 
   insertTodo(text) {
@@ -25,7 +23,7 @@ class Todo extends Component {
       text,
       done: false
     };
-    insert(newTodo).then(() => this.fetchTodoList());
+    this.props.service.insert(newTodo).then(() => this.fetchTodoList());
     this.setState({
       todolist: [...this.state.todolist, newTodo]
     });
@@ -38,7 +36,7 @@ class Todo extends Component {
             ...todo,
             done
           }
-        update(newTodo).then( () => this.fetchTodoList() );
+        this.props.service.update(newTodo).then( () => this.fetchTodoList() );
         return newTodo;
       } else {
         return todo;
@@ -54,7 +52,7 @@ class Todo extends Component {
             ...todo,
             removed: true
           }
-        update(newTodo).then( () => this.fetchTodoList() );
+        this.props.service.update(newTodo).then( () => this.fetchTodoList() );
         return newTodo;
       } else {
         return todo;
@@ -67,7 +65,7 @@ class Todo extends Component {
     return (
       <>
         <div className="container">
-          <h1>Todo</h1>
+          <h1>{this.props.title}</h1>
         </div>
         <TodoSearch onInsert={this.insertTodo.bind(this)} />
         <TodoList todolist={this.state.todolist} onChange={this.changeDone.bind(this)} onDelete={this.deleteTodo.bind(this)} />
