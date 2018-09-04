@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import TodoSearch from '../component/TodoSearch';
 import TodoList from '../component/TodoList'
-import TodoService from '../services/todo.service';
 class Todo extends Component {
   constructor(props) {
     super(props);
