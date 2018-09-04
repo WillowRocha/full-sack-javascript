@@ -21,27 +21,26 @@ class App extends Component {
     serviceLists.fetchAll().then(lists => this.setState({ lists }));
   }
 
-  renderDefaultRoute(list, service) {
-    return <Route key={`${list.name}-default`} path={`/`} exact component={withService(service, list.title)(TodoLoadable)} />;
-  }
-
   renderListRoutes(list) {
     const service = new Service(list.name);
-    return <Route key={list.name} path={`/${list.name}`} exact component={withService(service, list.title)(TodoLoadable)} />;
+    return <Route key={list._id} path={`/${list.default ? '' : list.name}`} exact component={withService(service, list.title)(TodoLoadable)} />;
   }
 
   render() {
     return (
       <BrowserRouter>
-        <div className="row">
-          <div className="col-md-3">
-            <Nav lists={this.state.lists} />
-          </div>
-          <div className="col-md-9">
-            <Switch>
-              <Route path="/about" exact component={AboutLoadable} />
-              {this.state.lists.map(this.renderListRoutes.bind(this))}
-            </Switch>
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-md-3">
+              <h1>Listas:</h1>
+              <Nav lists={this.state.lists} />
+            </div>
+            <div className="col-md-9">
+              <Switch>
+                <Route path="/about" exact component={AboutLoadable} />
+                {this.state.lists.map(this.renderListRoutes.bind(this))}
+              </Switch>
+            </div>
           </div>
         </div>
       </BrowserRouter>
