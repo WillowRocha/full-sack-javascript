@@ -7,46 +7,28 @@ import TodoLoadable from './TodoLoadable';
 import AboutLoadable from '../component/AboutLoadable';
 import Nav from '../component/Nav';
 
-const serviceLists = new Service('lists');
+const todoService = new Service('todo');
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      lists: []
-    };
-  }
-
-  componentDidMount() {
-    serviceLists.fetchAll().then(lists => this.setState({ lists }));
-  }
-
-  renderDefaultRoute(list, service) {
-    return <Route key={`${list.name}-default`} path={`/`} exact component={withService(service, list.title)(TodoLoadable)} />;
-  }
-
-  renderListRoutes(list) {
-    const service = new Service(list.name);
-    return <Route key={list.name} path={`/${list.name}`} exact component={withService(service, list.title)(TodoLoadable)} />;
-  }
-
-  render() {
-    return (
-      <BrowserRouter>
+function App(props) {
+  return (
+    <BrowserRouter>
+      <div className="container-fluid">
         <div className="row">
           <div className="col-md-3">
-            <Nav lists={this.state.lists} />
+            <h1>Listas:</h1>
+            <Nav/>
           </div>
           <div className="col-md-9">
             <Switch>
               <Route path="/about" exact component={AboutLoadable} />
-              {this.state.lists.map(this.renderListRoutes.bind(this))}
+              <Route path="/task" exact component={withService(todoService, 'Todo list:')(TodoLoadable)} />
+              <Route path="/" exact component={withService(todoService, 'Todo list:')(TodoLoadable)} />
             </Switch>
           </div>
         </div>
-      </BrowserRouter>
-    );
-  }
+      </div>
+    </BrowserRouter>
+  );
 }
 
 export default App;
