@@ -3,6 +3,15 @@ const url = require('url');
 const connection = require('./connection');
 const { ObjectId } = require('mongodb');
 
+
+const parseBody = (req) => {
+    return new Promise( (resolve) => {
+        let body = '';
+        req.on('data', chunk => body += chunk.toString());
+        req.on('end', () => resolve(JSON.parse(body)));
+    });
+}
+
 const server = http.createServer( async (req, res) => {
 
     const [collectionName, idObject] = url.parse(req.url, true).pathname.replace(/^\//, '').split('/');
@@ -22,54 +31,44 @@ const server = http.createServer( async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 
+    let responseData = null;
+
     switch(req.method) {
         case 'POST':
             const body = await parseBody(req);
-            const saved = await collection.insertOne(body);
-            res.end(JSON.stringify(saved));
+            responseData = await collection.insertOne(body);
             break;
         case 'GET':
             if( idObject ) {
-                const object = await collection.findOne({_id:ObjectId(idObject)});
-                res.end(JSON.stringify(object));
+                responseData = await collection.findOne({_id:ObjectId(idObject)});
             } else {
-                const list = await collection.find({}).toArray();
-                res.end(JSON.stringify(list));
+                responseData = await collection.find({}).toArray();
             }
             break;
         case 'PUT':
             if( idObject ) {
                 const body = await parseBody(req);
-                const saved = await collection.updateOne({_id:ObjectId(idObject)}, {'$set':body}, {upsert: true});
-                res.end(JSON.stringify(saved));
+                responseData = await collection.updateOne({_id:ObjectId(idObject)}, {'$set':body}, {upsert: true});
             } else {
-                res.end('invalid param');
+                res.writeHead(400);
+                responseData = {
+                    error: true,
+                    message: 'invalid param'
+                };
             }
             break;
         case 'OPTIONS':
-            var headers = {};
-            headers["Access-Control-Allow-Origin"] = "*";
-            headers["Access-Control-Allow-Methods"] = "POST, GET, PUT, DELETE, OPTIONS";
-            headers["Access-Control-Allow-Credentials"] = false;
-            headers["Access-Control-Max-Age"] = '86400'; // 24 hours
-            headers["Access-Control-Allow-Headers"] = "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept";
-            res.writeHead(200, headers);
-            res.end();
+            responseData = true;
             break;
         default:
-            res.end('invalid');
+            res.writeHead(405);
+            responseData = {
+                error: true,
+                message: 'invalid method'
+            }
     }
+    res.end(JSON.stringify(responseData));
     client.close();
 });
 
 server.listen(3000, () => console.log('start 3000'))
-
-
-
-const parseBody = (req) => {
-    return new Promise( (resolve) => {
-        let body = '';
-        req.on('data', chunk => body += chunk.toString());
-        req.on('end', () => resolve(JSON.parse(body)));
-    });
-}
