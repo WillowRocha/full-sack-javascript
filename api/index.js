@@ -61,7 +61,7 @@ const server = http.createServer( async (req, res) => {
             responseData = true;
             break;
         default:
-            res.writeHead(405);
+            res.writeHead(501);
             responseData = {
                 error: true,
                 message: 'invalid method'
